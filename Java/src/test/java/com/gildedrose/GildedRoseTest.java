@@ -4,6 +4,8 @@ import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.ValueSource;
 
+import java.util.Random;
+
 import static java.util.stream.IntStream.range;
 import static org.assertj.core.api.Assertions.assertThat;
 
@@ -15,6 +17,7 @@ class GildedRoseTest {
     private static final String DEXTERITY_VEST = "+5 Dexterity Vest";
     private static final String ELIXIR_OF_THE_MONGOOSE = "Elixir of the Mongoose";
     private static final String SULFURAS = "Sulfuras, Hand of Ragnaros";
+    private static final int LEGENDARY_VALUE = 80;
 
     @ParameterizedTest(name = "Item name = {0}")
     @ValueSource(strings = {AGED_BRIE, BACKSTAGE_PASSES, CONJURED, DEXTERITY_VEST, ELIXIR_OF_THE_MONGOOSE})
@@ -46,7 +49,6 @@ class GildedRoseTest {
         app.updateQuality();
         assertThat(app.items).allSatisfy(item -> assertThat(item).hasFieldOrPropertyWithValue("name", itemName));
     }
-
 
     @ParameterizedTest(name = "sellIn = {0}")
     @ValueSource(ints = {-5, -4, -3, -2, -1, 0})
@@ -91,6 +93,17 @@ class GildedRoseTest {
                 .isEqualTo(new Item(BACKSTAGE_PASSES, sellIn - 1, 0));
     }
 
+    @ParameterizedTest(name = "sellIn = {0}")
+    @ValueSource(ints = {-2, -1, 0, 1, 2})
+    void updateQuality_givenLegendarySulfuras_thenSellInDoesNotChangeAndQuality80(int sellIn) {
+        GildedRose testInstance = new GildedRose(new Item[]{new Item(SULFURAS, sellIn, new Random().nextInt())});
+
+        testInstance.updateQuality();
+
+        assertThat(testInstance.items[0]).hasFieldOrPropertyWithValue("quality", LEGENDARY_VALUE)
+                .hasFieldOrPropertyWithValue("sellIn", sellIn);
+    }
+
     @Test
     void updateQuality_givenMultipleCalls_thenChangesSellInAndQuality() {
         GildedRose
@@ -98,8 +111,8 @@ class GildedRoseTest {
                 new GildedRose(new Item[]{new Item(DEXTERITY_VEST, 10, 20),
                         new Item(AGED_BRIE, 2, 0),
                         new Item(ELIXIR_OF_THE_MONGOOSE, 5, 7),
-                        new Item(SULFURAS, 0, 80),
-                        new Item(SULFURAS, -1, 80),
+                        new Item(SULFURAS, 0, LEGENDARY_VALUE),
+                        new Item(SULFURAS, -1, LEGENDARY_VALUE),
                         new Item(BACKSTAGE_PASSES, 15, 20),
                         new Item(BACKSTAGE_PASSES, 10, 49),
                         new Item(BACKSTAGE_PASSES, 5, 49),
@@ -112,8 +125,8 @@ class GildedRoseTest {
                 .isEqualTo(new Item[]{new Item(DEXTERITY_VEST, 9, 19),
                         new Item(AGED_BRIE, 1, 1),
                         new Item(ELIXIR_OF_THE_MONGOOSE, 4, 6),
-                        new Item(SULFURAS, 0, 80),
-                        new Item(SULFURAS, -1, 80),
+                        new Item(SULFURAS, 0, LEGENDARY_VALUE),
+                        new Item(SULFURAS, -1, LEGENDARY_VALUE),
                         new Item(BACKSTAGE_PASSES, 14, 21),
                         new Item(BACKSTAGE_PASSES, 9, 50),
                         new Item(BACKSTAGE_PASSES, 4, 50),
@@ -126,8 +139,8 @@ class GildedRoseTest {
                 .isEqualTo(new Item[]{new Item(DEXTERITY_VEST, 8, 18),
                         new Item(AGED_BRIE, 0, 2),
                         new Item(ELIXIR_OF_THE_MONGOOSE, 3, 5),
-                        new Item(SULFURAS, 0, 80),
-                        new Item(SULFURAS, -1, 80),
+                        new Item(SULFURAS, 0, LEGENDARY_VALUE),
+                        new Item(SULFURAS, -1, LEGENDARY_VALUE),
                         new Item(BACKSTAGE_PASSES, 13, 22),
                         new Item(BACKSTAGE_PASSES, 8, 50),
                         new Item(BACKSTAGE_PASSES, 3, 50),
