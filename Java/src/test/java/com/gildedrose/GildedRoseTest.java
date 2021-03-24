@@ -1,19 +1,42 @@
 package com.gildedrose;
 
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.ValueSource;
 
-import java.util.stream.IntStream;
-
+import static java.util.stream.IntStream.range;
 import static org.assertj.core.api.Assertions.assertThat;
 
 class GildedRoseTest {
 
-    private static final String DEXTERITY_VEST = "+5 Dexterity Vest";
     private static final String AGED_BRIE = "Aged Brie";
-    private static final String ELIXIR_OF_THE_MONGOOSE = "Elixir of the Mongoose";
-    private static final String SULFURAS = "Sulfuras, Hand of Ragnaros";
     private static final String BACKSTAGE_PASSES = "Backstage passes to a TAFKAL80ETC concert";
     private static final String CONJURED = "Conjured Mana Cake";
+    private static final String DEXTERITY_VEST = "+5 Dexterity Vest";
+    private static final String ELIXIR_OF_THE_MONGOOSE = "Elixir of the Mongoose";
+    private static final String SULFURAS = "Sulfuras, Hand of Ragnaros";
+
+    @ParameterizedTest(name = "Item name = {0}")
+    @ValueSource(strings = {AGED_BRIE, BACKSTAGE_PASSES, CONJURED, DEXTERITY_VEST, ELIXIR_OF_THE_MONGOOSE})
+    void theQualityOfAnItemIsNeverNegative(String item) {
+        range(-5, 5).forEach(sellIn -> {
+            GildedRose testInstance = new GildedRose(new Item[]{new Item(item, sellIn, -10)});
+
+            testInstance.updateQuality();
+
+            assertThat(testInstance.items[0]).hasFieldOrPropertyWithValue("quality", 0);
+        });
+    }
+
+    @ParameterizedTest(name = "sellIn = {0}")
+    @ValueSource(ints = {-5, -4, -3, -2, -1, 0})
+    void updateQuality_givenAgedBrieThatShouldAlreadyBeSold_thenQualityPlus2(int sellIn) {
+        GildedRose testInstance = new GildedRose(new Item[]{new Item(AGED_BRIE, sellIn, 1)});
+
+        testInstance.updateQuality();
+
+        assertThat(testInstance.items[0]).usingRecursiveComparison().isEqualTo(new Item(AGED_BRIE, sellIn - 1, 3));
+    }
 
     @Test
     void updateQuality_givenAnItemName_thenSameItemName() {
@@ -24,64 +47,48 @@ class GildedRoseTest {
         assertThat(app.items).allSatisfy(item -> assertThat(item).hasFieldOrPropertyWithValue("name", itemName));
     }
 
-    @Test
-    void updateQuality_givenBackstagePasses10DaysOrLess_thenQualityPlus2() {
-        IntStream.range(1, 5).forEach(sellIn -> {
-            GildedRose testInstance = new GildedRose(new Item[]{new Item(BACKSTAGE_PASSES, sellIn, 1)});
 
-            testInstance.updateQuality();
+    @ParameterizedTest(name = "sellIn = {0}")
+    @ValueSource(ints = {-5, -4, -3, -2, -1, 0})
+    void updateQuality_givenAnItemThatShouldAlreadyBeSold_thenQualityMinus2(int sellIn) {
+        GildedRose testInstance = new GildedRose(new Item[]{new Item(DEXTERITY_VEST, sellIn, 4)});
 
-            assertThat(testInstance.items[0]).usingRecursiveComparison()
-                    .isEqualTo(new Item(BACKSTAGE_PASSES, sellIn - 1, 4));
-        });
+        testInstance.updateQuality();
+
+        assertThat(testInstance.items[0]).usingRecursiveComparison().isEqualTo(new Item(DEXTERITY_VEST, sellIn - 1, 2));
     }
 
-    @Test
-    void updateQuality_givenBackstagePasses5DaysOrLess_thenQualityPlus3() {
-        IntStream.range(6, 10).forEach(sellIn -> {
-            GildedRose testInstance = new GildedRose(new Item[]{new Item(BACKSTAGE_PASSES, sellIn, 1)});
+    @ParameterizedTest(name = "sellIn = {0}")
+    @ValueSource(ints = {6, 7, 8, 9, 10})
+    void updateQuality_givenBackstagePasses10DaysOrLess_thenQualityPlus3(int sellIn) {
+        GildedRose testInstance = new GildedRose(new Item[]{new Item(BACKSTAGE_PASSES, sellIn, 1)});
 
-            testInstance.updateQuality();
+        testInstance.updateQuality();
 
-            assertThat(testInstance.items[0]).usingRecursiveComparison()
-                    .isEqualTo(new Item(BACKSTAGE_PASSES, sellIn - 1, 3));
-        });
+        assertThat(testInstance.items[0]).usingRecursiveComparison()
+                .isEqualTo(new Item(BACKSTAGE_PASSES, sellIn - 1, 3));
     }
 
-    @Test
-    void updateQuality_givenBackstagePassesConcertFinished_thenQuality0() {
-        IntStream.range(-1, 0).forEach(sellIn -> {
-            GildedRose testInstance = new GildedRose(new Item[]{new Item(BACKSTAGE_PASSES, sellIn, 1)});
+    @ParameterizedTest(name = "sellIn = {0}")
+    @ValueSource(ints = {1, 2, 3, 4, 5})
+    void updateQuality_givenBackstagePasses5DaysOrLess_thenQualityPlus2(int sellIn) {
+        GildedRose testInstance = new GildedRose(new Item[]{new Item(BACKSTAGE_PASSES, sellIn, 1)});
 
-            testInstance.updateQuality();
+        testInstance.updateQuality();
 
-            assertThat(testInstance.items[0]).usingRecursiveComparison()
-                    .isEqualTo(new Item(BACKSTAGE_PASSES, sellIn - 1, 0));
-        });
+        assertThat(testInstance.items[0]).usingRecursiveComparison()
+                .isEqualTo(new Item(BACKSTAGE_PASSES, sellIn - 1, 4));
     }
 
-    @Test
-    void updateQuality_givenAnItemThatShouldAlreadyBeSold_thenQualityMinus2() {
-        IntStream.range(-5, -1).forEach(sellIn -> {
-            GildedRose testInstance = new GildedRose(new Item[]{new Item(DEXTERITY_VEST, sellIn, 4)});
+    @ParameterizedTest(name = "sellIn = {0}")
+    @ValueSource(ints = {-1, 0})
+    void updateQuality_givenBackstagePassesConcertFinished_thenQuality0(int sellIn) {
+        GildedRose testInstance = new GildedRose(new Item[]{new Item(BACKSTAGE_PASSES, sellIn, 1)});
 
-            testInstance.updateQuality();
+        testInstance.updateQuality();
 
-            assertThat(testInstance.items[0]).usingRecursiveComparison()
-                    .isEqualTo(new Item(DEXTERITY_VEST, sellIn - 1, 2));
-        });
-    }
-
-    @Test
-    void updateQuality_givenAgedBrieThatShouldAlreadyBeSold_thenQualityPlus2() {
-        IntStream.range(-5, -1).forEach(sellIn -> {
-            GildedRose testInstance = new GildedRose(new Item[]{new Item(AGED_BRIE, sellIn, 1)});
-
-            testInstance.updateQuality();
-
-            assertThat(testInstance.items[0]).usingRecursiveComparison()
-                    .isEqualTo(new Item(AGED_BRIE, sellIn - 1, 3));
-        });
+        assertThat(testInstance.items[0]).usingRecursiveComparison()
+                .isEqualTo(new Item(BACKSTAGE_PASSES, sellIn - 1, 0));
     }
 
     @Test
