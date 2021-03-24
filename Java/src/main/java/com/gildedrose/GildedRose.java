@@ -1,5 +1,7 @@
 package com.gildedrose;
 
+import static java.lang.Math.max;
+import static java.lang.Math.min;
 import static java.util.Objects.requireNonNull;
 
 class GildedRose {
@@ -7,6 +9,7 @@ class GildedRose {
     private static final String AGED_BRIE = "Aged Brie";
     private static final String BACKSTAGE_PASSES = "Backstage passes to a TAFKAL80ETC concert";
     private static final int LEGENDARY_QUALITY = 80;
+    private static final int MAX_NON_LEGENDARY_QUALITY = 50;
 
     Item[] items;
 
@@ -17,14 +20,14 @@ class GildedRose {
     public void updateQuality() {
         for (Item item : items) {
             if (AGED_BRIE.equals(item.name) || BACKSTAGE_PASSES.equals(item.name)) {
-                if (item.quality < 50) {
+                if (item.quality < MAX_NON_LEGENDARY_QUALITY) {
                     item.quality = item.quality + 1;
 
                     if (BACKSTAGE_PASSES.equals(item.name)) {
-                        if (item.sellIn < 11 && item.quality < 50) {
+                        if (item.sellIn < 11 && item.quality < MAX_NON_LEGENDARY_QUALITY) {
                             item.quality = item.quality + 1;
                         }
-                        if (item.sellIn < 6 && item.quality < 50) {
+                        if (item.sellIn < 6 && item.quality < MAX_NON_LEGENDARY_QUALITY) {
                             item.quality = item.quality + 1;
                         }
                     }
@@ -41,7 +44,7 @@ class GildedRose {
 
             if (item.sellIn < 0) {
                 if (AGED_BRIE.equals(item.name)) {
-                    if (item.quality < 50) {
+                    if (item.quality < MAX_NON_LEGENDARY_QUALITY) {
                         item.quality = item.quality + 1;
                     }
                 } else {
@@ -58,7 +61,7 @@ class GildedRose {
             if (SULFURAS.equals(item.name)) {
                 item.quality = LEGENDARY_QUALITY;
             } else {
-                item.quality = Math.max(item.quality, 0);
+                item.quality = min(max(item.quality, 0), MAX_NON_LEGENDARY_QUALITY);
             }
         }
     }

@@ -6,6 +6,7 @@ import org.junit.jupiter.params.provider.ValueSource;
 
 import java.util.Random;
 
+import static java.lang.Math.abs;
 import static java.util.stream.IntStream.range;
 import static org.assertj.core.api.Assertions.assertThat;
 
@@ -18,6 +19,21 @@ class GildedRoseTest {
     private static final String ELIXIR_OF_THE_MONGOOSE = "Elixir of the Mongoose";
     private static final String SULFURAS = "Sulfuras, Hand of Ragnaros";
     private static final int LEGENDARY_VALUE = 80;
+
+    @ParameterizedTest(name = "Item name = {0}")
+    @ValueSource(strings = {AGED_BRIE, BACKSTAGE_PASSES, CONJURED, DEXTERITY_VEST, ELIXIR_OF_THE_MONGOOSE})
+    void theQualityOfAnItemIsNeverMoreThan50(String item) {
+        int rangeStart = BACKSTAGE_PASSES.equals(item) ? 1 : -5;
+        range(rangeStart, 5).forEach(sellIn -> {
+            GildedRose
+                    testInstance =
+                    new GildedRose(new Item[]{new Item(item, sellIn, 52 + abs(new Random().nextInt()))});
+
+            testInstance.updateQuality();
+
+            assertThat(testInstance.items[0]).hasFieldOrPropertyWithValue("quality", 50);
+        });
+    }
 
     @ParameterizedTest(name = "Item name = {0}")
     @ValueSource(strings = {AGED_BRIE, BACKSTAGE_PASSES, CONJURED, DEXTERITY_VEST, ELIXIR_OF_THE_MONGOOSE})
