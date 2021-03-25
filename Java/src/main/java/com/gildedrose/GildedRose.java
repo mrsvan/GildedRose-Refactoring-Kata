@@ -52,11 +52,11 @@ class GildedRose {
         private final int sellInIncrement;
         private final int maxQuality;
 
-        ItemType(String name, boolean legendary, Consumer<Item> qualityUpdater) {
+        ItemType(String name, boolean isLegendary, Consumer<Item> qualityUpdater) {
             this.name = name;
             this.qualityUpdater = qualityUpdater;
-            sellInIncrement = legendary ? 0 : 1;
-            maxQuality = legendary ? LEGENDARY_QUALITY : MAX_NON_LEGENDARY_QUALITY;
+            sellInIncrement = isLegendary ? 0 : 1;
+            maxQuality = isLegendary ? LEGENDARY_QUALITY : MAX_NON_LEGENDARY_QUALITY;
         }
 
         private static int qualityIncrementFor(Item item) {
