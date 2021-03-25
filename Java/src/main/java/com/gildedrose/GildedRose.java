@@ -1,17 +1,18 @@
 package com.gildedrose;
 
+import java.util.Objects;
+import java.util.function.Consumer;
+
 import static java.lang.Math.max;
 import static java.lang.Math.min;
+import static java.util.Arrays.stream;
 import static java.util.Objects.requireNonNull;
 
 class GildedRose {
-    private static final String AGED_BRIE = "Aged Brie";
-    private static final String BACKSTAGE_PASSES = "Backstage passes to a TAFKAL80ETC concert";
-    private static final String CONJURED = "Conjured Mana Cake";
-    private static final String SULFURAS = "Sulfuras, Hand of Ragnaros";
 
     private static final int LEGENDARY_QUALITY = 80;
     private static final int MAX_NON_LEGENDARY_QUALITY = 50;
+    private static final int MIN_QUALITY = 0;
 
     Item[] items;
 
@@ -20,53 +21,52 @@ class GildedRose {
     }
 
     public void updateQuality() {
-        for (Item item : items) {
-            int defaultQualityDecrementor = CONJURED.equals(item.name) ? 2 : 1;
+        stream(items).forEach(item -> typeOf(item).process(item));
+    }
 
-            if (AGED_BRIE.equals(item.name) || BACKSTAGE_PASSES.equals(item.name)) {
-                if (item.quality < MAX_NON_LEGENDARY_QUALITY) {
-                    item.quality = item.quality + 1;
+    private ItemType typeOf(Item item) {
+        return stream(ItemType.values()).filter(type -> Objects.equals(item.name, type.name))
+                .findFirst()
+                .orElse(ItemType.OTHER);
+    }
 
-                    if (BACKSTAGE_PASSES.equals(item.name)) {
-                        if (item.sellIn < 11 && item.quality < MAX_NON_LEGENDARY_QUALITY) {
-                            item.quality = item.quality + 1;
-                        }
-                        if (item.sellIn < 6 && item.quality < MAX_NON_LEGENDARY_QUALITY) {
-                            item.quality = item.quality + 1;
-                        }
-                    }
-                }
-            } else {
-                if (item.quality > 0 && !SULFURAS.equals(item.name)) {
-                    item.quality = item.quality - defaultQualityDecrementor;
-                }
-            }
-
-            if (!SULFURAS.equals(item.name)) {
-                item.sellIn = item.sellIn - 1;
-            }
-
+    private enum ItemType {
+        AGED_BRIE("Aged Brie", false, item -> item.quality += qualityIncrementFor(item)),
+        BACKSTAGE_PASSES("Backstage passes to a TAFKAL80ETC concert", false, item -> {
             if (item.sellIn < 0) {
-                if (AGED_BRIE.equals(item.name)) {
-                    if (item.quality < MAX_NON_LEGENDARY_QUALITY) {
-                        item.quality = item.quality + 1;
-                    }
-                } else {
-                    if (BACKSTAGE_PASSES.equals(item.name)) {
-                        item.quality = 0;
-                    } else {
-                        if (item.quality > 0 && !SULFURAS.equals(item.name)) {
-                            item.quality = item.quality - defaultQualityDecrementor;
-                        }
-                    }
-                }
-            }
-
-            if (SULFURAS.equals(item.name)) {
-                item.quality = LEGENDARY_QUALITY;
+                item.quality = 0;
+            } else if (item.sellIn < 5) {
+                item.quality += 3;
+            } else if (item.sellIn < 10) {
+                item.quality += 2;
             } else {
-                item.quality = min(max(item.quality, 0), MAX_NON_LEGENDARY_QUALITY);
+                item.quality++;
             }
+        }),
+        CONJURED("Conjured Mana Cake", false, item -> item.quality -= qualityIncrementFor(item) * 2),
+        SULFURAS("Sulfuras, Hand of Ragnaros", true, item -> item.quality = LEGENDARY_QUALITY),
+        OTHER(null, false, item -> item.quality -= qualityIncrementFor(item));
+
+        private final String name;
+        private final Consumer<Item> qualityUpdater;
+        private final int sellInIncrement;
+        private final int maxQuality;
+
+        ItemType(String name, boolean legendary, Consumer<Item> qualityUpdater) {
+            this.name = name;
+            this.qualityUpdater = qualityUpdater;
+            sellInIncrement = legendary ? 0 : 1;
+            maxQuality = legendary ? LEGENDARY_QUALITY : MAX_NON_LEGENDARY_QUALITY;
+        }
+
+        private static int qualityIncrementFor(Item item) {
+            return item.sellIn < 0 ? 2 : 1;
+        }
+
+        void process(Item item) {
+            item.sellIn -= sellInIncrement;
+            qualityUpdater.accept(item);
+            item.quality = min(max(item.quality, MIN_QUALITY), maxQuality);
         }
     }
 }
