@@ -40,7 +40,9 @@ class GildedRoseTest {
     @ValueSource(strings = {AGED_BRIE, BACKSTAGE_PASSES, CONJURED, DEXTERITY_VEST, ELIXIR_OF_THE_MONGOOSE})
     void theQualityOfAnItemIsNeverNegative(String item) {
         range(-5, 5).forEach(sellIn -> {
-            GildedRose testInstance = new GildedRose(new Item[]{new Item(item, sellIn, -10)});
+            GildedRose
+                    testInstance =
+                    new GildedRose(new Item[]{new Item(item, sellIn, -Math.abs(new Random().nextInt()))});
 
             testInstance.updateQuality();
 
@@ -64,6 +66,12 @@ class GildedRoseTest {
     @ValueSource(ints = {-5, -4, -3, -2, -1, 0})
     void updateQuality_givenAgedBrieThatShouldAlreadyBeSold_thenQualityPlus2(int sellIn) {
         assertGivenItemAndSellInThenQualityModifiedBy(AGED_BRIE, sellIn, 2);
+    }
+
+    @ParameterizedTest(name = "sellIn = {0}")
+    @ValueSource(ints = {1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12})
+    void updateQuality_givenAgedBrieToBeSold_thenQualityPlus1(int sellIn) {
+        assertGivenItemAndSellInThenQualityModifiedBy(AGED_BRIE, sellIn, 1);
     }
 
     @Test
